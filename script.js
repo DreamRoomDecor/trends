@@ -8,7 +8,17 @@ document.addEventListener('DOMContentLoaded', function() {
         
     function shuffleArray(array) { for (let i = array.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[array[i], array[j]] = [array[j], array[i]]; } }
     function capitalizeEachWord(str) { if (!str) return ''; return str.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '); }
-    function generateSeoTitle(baseKeyword) { const hookWords = ['Stunning', 'Chic', 'Creative', 'Affordable', 'Modern', 'Cozy', 'Elegant', 'Ultimate', 'Simple', 'Inspiring']; const randomHook = hookWords[Math.floor(Math.random() * hookWords.length)]; const randomNumber = Math.floor(Math.random() * (50 - 10 + 1)) + 10; const capitalizedKeyword = capitalizeEachWord(baseKeyword); return `${randomHook} ${capitalizedKeyword} Room Decor`; }
+    
+    function generateSeoTitle(baseKeyword) { 
+        const hookWords = ['Printable', 'Aesthetic', 'Minimalist', 'Boho', 'Modern', 'Abstract', 'Vintage', 'DIY', 'Beautiful', 'Digital']; 
+        const suffixWords = ['Wall Art', 'Poster', 'Art Print', 'Digital Download', 'Decor'];
+        
+        const randomHook = hookWords[Math.floor(Math.random() * hookWords.length)]; 
+        const randomSuffix = suffixWords[Math.floor(Math.random() * suffixWords.length)];
+        const capitalizedKeyword = capitalizeEachWord(baseKeyword); 
+        
+        return `${randomHook} ${capitalizedKeyword} ${randomSuffix}`; 
+    }
 
     function loadNextBatch() {
         if (isLoading) return;
@@ -22,8 +32,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 const keywordForUrl = keyword.replace(/\s/g, '-').toLowerCase();
                 const linkUrl = `detail.html?q=${encodeURIComponent(keywordForUrl)}`; 
 
-                // ▼▼▼ PERUBAHAN UKURAN GAMBAR: Menjadi Large (600x900) ▼▼▼
-                const imageUrl = `https://tse1.mm.bing.net/th?q=${encodeURIComponent(keyword)}&w=600&h=900&c=7&rs=1&p=0&dpr=1.5&pid=1.7`;
+                const queryImage = keyword + " wall art poster";
+                const imageUrl = `https://tse1.mm.bing.net/th?q=${encodeURIComponent(queryImage)}&w=400&h=600&c=7&rs=1&p=0&dpr=1.5&pid=1.7`;
                 
                 const newTitle = generateSeoTitle(keyword);
                 const cardHTML = `<article class="content-card"><a href="${linkUrl}"><img src="${imageUrl}" alt="${newTitle}" loading="lazy"><div class="content-card-body"><h3>${newTitle}</h3></div></a></article>`;
