@@ -94,13 +94,12 @@
     <div class="form-group">
         <label for="keyword">Keyword Utama:</label>
         <input type="text" id="keyword" placeholder="Contoh: modern living room decor" autocomplete="off">
-        <div class="note">Keyword ini akan digunakan sebagai nama file HTML (e.g. nama-keyword.html) dan optimasi gambar.</div>
+        <div class="note">Keyword ini akan digunakan sebagai nama file HTML.</div>
     </div>
     
     <div class="form-group">
         <label for="content">Isi Artikel:</label>
         <textarea id="content" placeholder="Baris Paling Atas Pasti Judul Artikel H1&#10;&#10;Paragraf Pertama ditulis di sini...&#10;&#10;Paragraf Kedua ditulis di sini...&#10;&#10;Dan seterusnya..."></textarea>
-        <div class="note">Ingat: Baris pertama otomatis dipotong menjadi tag &lt;h1&gt;, pastikan baris kosong digunakan untuk memisahkan antar paragraf.</div>
     </div>
     
     <button onclick="generateAndDownload()">Generate & Download Artikel</button>
@@ -118,14 +117,13 @@ function generateAndDownload() {
         return;
     }
     
-    // 1. Buat Slug URL & Nama File dari Keyword
+    // 1. Buat Slug URL & Nama File
     const keywordSlug = keywordInput.toLowerCase()
                                     .replace(/\s+/g, '-')
                                     .replace(/[^a-z0-9-]/g, '')
                                     .replace(/-+/g, '-');
     const fileName = keywordSlug + '.html';
     
-    // 2. Pecah konten berdasarkan baris baru dan buang baris kosong
     const lines = contentInput.split('\n').map(line => line.trim()).filter(line => line.length > 0);
     
     if (lines.length < 1) {
@@ -133,19 +131,14 @@ function generateAndDownload() {
         return;
     }
     
-    // Kalimat paling atas mutlak menjadi judul H1
     const h1Title = lines[0]; 
     const remainingParagraphs = lines.slice(1);
     
-    // 3. Bangun isi konten artikel beserta iklan dan gambar
-    // Menyisipkan Judul H1
+    // 2. Bangun isi konten artikel beserta iklan ad2
     let articleBodyHtml = `<h1>${h1Title}</h1>\n`;
-    
-    // MENYISIPKAN IKLAN 2: Di bawah judul (Center)
-    // PENGAMANAN SCRIPT: menggunakan <\/script> agar tidak merusak logika tool HTML ini
     articleBodyHtml += `<center><script src="https://seribudollarperhari.github.io/banner/ad2.js"><\/script></center>\n`;
     
-    // Variasi keyword turunan untuk variasi gambar agar berbeda-beda
+    // Variasi keyword turunan untuk AGC target
     const relatedQueries = [
         `${keywordInput} interior design`,
         `${keywordInput} home decor ideas`,
@@ -155,19 +148,23 @@ function generateAndDownload() {
         `${keywordInput} beautiful house decor`
     ];
     
-    // Proses penyusunan paragraf dan penempatan gambar
     remainingParagraphs.forEach((paragraphText, index) => {
-        // Letakkan gambar otomatis dimulai atas paragraf kedua (index ke-1) dan seterusnya berselang-seling
+        // Letakkan gambar otomatis dengan rasio 16:9 dimulai atas paragraf kedua (index ke-1)
         if (index === 1 || (index > 1 && index % 2 === 1)) {
             const queryIndex = Math.floor(index / 2) % relatedQueries.length;
             const chosenImageQuery = relatedQueries[queryIndex];
             
-            const imgUrl = `https://tse1.mm.bing.net/th?q=${encodeURIComponent(chosenImageQuery)}&w=600&h=800&c=7&rs=1&p=0&dpr=1.5&pid=1.7`;
+            // Generate link ke web AGC (domain impian)
+            const agcTargetSlug = chosenImageQuery.replace(/\s+/g, '-').toLowerCase();
+            const agcTargetUrl = `https://dreamroomdecor.github.io/trends/detail.html?q=${encodeURIComponent(agcTargetSlug)}`;
+            
+            // Resolusi gambar 800x450 untuk menghasilkan rasio 16:9
+            const imgUrl = `https://tse1.mm.bing.net/th?q=${encodeURIComponent(chosenImageQuery)}&w=800&h=450&c=7&rs=1&p=0&dpr=1.5&pid=1.7`;
             
             articleBodyHtml += `
             <div class="article-image" style="text-align: center; margin: 25px 0;">
-                <a href="detail.html?q=${encodeURIComponent(keywordSlug)}" title="View more about ${h1Title}">
-                    <img src="${imgUrl}" alt="${h1Title} - ${chosenImageQuery}" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.01)'" onmouseout="this.style.transform='scale(1)'">
+                <a href="${agcTargetUrl}" title="View more about ${chosenImageQuery}" target="_blank">
+                    <img src="${imgUrl}" alt="${h1Title} - ${chosenImageQuery}" style="width: 100%; max-width: 800px; height: auto; aspect-ratio: 16/9; object-fit: cover; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.01)'" onmouseout="this.style.transform='scale(1)'">
                 </a>
             </div>\n`;
         }
@@ -175,11 +172,9 @@ function generateAndDownload() {
         articleBodyHtml += `<p>${paragraphText}</p>\n`;
     });
     
-    // 4. Siapkan Meta Description otomatis
     const metaDesc = remainingParagraphs[0] ? remainingParagraphs[0].substring(0, 150) + '...' : h1Title;
     
-    // 5. Satukan struktur HTML utuh dan pasang iklan tambahan
-    // PENGAMANAN SCRIPT: Semua tag penutup JS menggunakan <\/script>
+    // 3. Satukan struktur HTML Utuh, Iklan, & Script AGC Related Post
     const finalHtmlOutput = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -221,6 +216,14 @@ function generateAndDownload() {
                 </div>
             </article>
             
+            <center><script src="https://seribudollarperhari.github.io/banner/ad3.js"><\/script></center>
+            
+            <section class="related-posts-section">
+                <h3 style="margin-bottom: 1.5rem; text-align: center; font-size: 1.8rem; color: #222;">More Home Decor Inspirations</h3>
+                <div id="related-posts-container" class="content-grid">
+                    </div>
+            </section>
+            
             <center><script src="https://seribudollarperhari.github.io/banner/nativ.js"><\/script></center>
             
         </div>
@@ -231,10 +234,61 @@ function generateAndDownload() {
             <p>&copy; 2026 DecorHouz - Home Decor Ideas. All rights reserved.</p>
         </div>
     </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const keyword = "${h1Title}";
+            const script = document.createElement('script');
+            // Menarik referensi API Google Suggest
+            script.src = 'https://suggestqueries.google.com/complete/search?client=youtube&jsonp=handleRelatedSuggest&hl=en&q=' + encodeURIComponent(keyword + " home decor");
+            document.head.appendChild(script);
+            script.onload = () => script.remove();
+
+            window.handleRelatedSuggest = function(data) {
+                const suggestions = data[1];
+                const container = document.getElementById('related-posts-container');
+                let html = '';
+                let count = 0;
+                const displayed = new Set([keyword.toLowerCase()]);
+                
+                // Variasi Judul Hook SEO AGC
+                const hookWords = ['Beautiful', 'Aesthetic', 'Modern', 'Minimalist', 'Cozy', 'Elegant', 'Luxury', 'Creative', 'Stunning', 'Inspiring']; 
+                const suffixWords = ['Home Decor', 'Design Ideas', 'Interior Inspo', 'Room Decor', 'Decorating Tips'];
+                
+                if (suggestions && suggestions.length > 0) {
+                    suggestions.forEach(item => {
+                        if(count >= 8) return;
+                        
+                        let relatedTerm = (typeof item === 'string' ? item : item[0]).replace(/home decor/gi, '').trim();
+                        if(!relatedTerm) relatedTerm = typeof item === 'string' ? item : item[0];
+                        
+                        if(displayed.has(relatedTerm.toLowerCase())) return;
+                        displayed.add(relatedTerm.toLowerCase());
+                        count++;
+                        
+                        // Menyesuaikan target link AGC Web
+                        const slug = relatedTerm.replace(/\\s+/g, '-').toLowerCase();
+                        const linkUrl = 'https://dreamroomdecor.github.io/trends/detail.html?q=' + encodeURIComponent(slug);
+                        
+                        // Mencari gambar Thumbnail square
+                        const queryImg = relatedTerm + " home decor";
+                        const imgUrl = 'https://tse1.mm.bing.net/th?q=' + encodeURIComponent(queryImg) + '&w=400&h=400&c=7&rs=1&p=0&dpr=1.5&pid=1.7';
+                        
+                        const rHook = hookWords[Math.floor(Math.random() * hookWords.length)];
+                        const rSuffix = suffixWords[Math.floor(Math.random() * suffixWords.length)];
+                        const rTitle = rHook + ' ' + relatedTerm.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') + ' ' + rSuffix;
+                        
+                        html += '<article class="content-card"><a href="' + linkUrl + '"><img src="' + imgUrl + '" alt="' + rTitle + '" loading="lazy"><div class="content-card-body"><h3>' + rTitle + '</h3></div></a></article>';
+                    });
+                }
+                if(container) container.innerHTML = html;
+            };
+        });
+    <\/script>
 </body>
 </html>`;
 
-    // 6. Jalankan fungsi download file HTML
+    // 4. Download file
     const blob = new Blob([finalHtmlOutput], { type: 'text/html;charset=utf-8;' });
     const link = document.createElement("a");
     
