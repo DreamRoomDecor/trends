@@ -120,13 +120,13 @@ function generateAndDownload() {
     
     // 1. Buat Slug URL & Nama File dari Keyword
     const keywordSlug = keywordInput.toLowerCase()
-                                    .replace(/\\s+/g, '-')
+                                    .replace(/\s+/g, '-')
                                     .replace(/[^a-z0-9-]/g, '')
                                     .replace(/-+/g, '-');
     const fileName = keywordSlug + '.html';
     
     // 2. Pecah konten berdasarkan baris baru dan buang baris kosong
-    const lines = contentInput.split('\\n').map(line => line.trim()).filter(line => line.length > 0);
+    const lines = contentInput.split('\n').map(line => line.trim()).filter(line => line.length > 0);
     
     if (lines.length < 1) {
         alert('Isi artikel tidak valid atau kosong!');
@@ -139,12 +139,13 @@ function generateAndDownload() {
     
     // 3. Bangun isi konten artikel beserta iklan dan gambar
     // Menyisipkan Judul H1
-    let articleBodyHtml = `<h1>${h1Title}</h1>\\n`;
+    let articleBodyHtml = `<h1>${h1Title}</h1>\n`;
     
     // MENYISIPKAN IKLAN 2: Di bawah judul (Center)
-    articleBodyHtml += `<center><script src='https://seribudollarperhari.github.io/banner/ad2.js'><\/script></center>\\n`;
+    // PENGAMANAN SCRIPT: menggunakan <\/script> agar tidak merusak logika tool HTML ini
+    articleBodyHtml += `<center><script src="https://seribudollarperhari.github.io/banner/ad2.js"><\/script></center>\n`;
     
-    // Variasi keyword turunan untuk variasi gambar agar berbeda-beda (Bing Image Search API Query)
+    // Variasi keyword turunan untuk variasi gambar agar berbeda-beda
     const relatedQueries = [
         `${keywordInput} interior design`,
         `${keywordInput} home decor ideas`,
@@ -168,16 +169,17 @@ function generateAndDownload() {
                 <a href="detail.html?q=${encodeURIComponent(keywordSlug)}" title="View more about ${h1Title}">
                     <img src="${imgUrl}" alt="${h1Title} - ${chosenImageQuery}" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.01)'" onmouseout="this.style.transform='scale(1)'">
                 </a>
-            </div>\\n`;
+            </div>\n`;
         }
         
-        articleBodyHtml += `<p>${paragraphText}</p>\\n`;
+        articleBodyHtml += `<p>${paragraphText}</p>\n`;
     });
     
     // 4. Siapkan Meta Description otomatis
     const metaDesc = remainingParagraphs[0] ? remainingParagraphs[0].substring(0, 150) + '...' : h1Title;
     
     // 5. Satukan struktur HTML utuh dan pasang iklan tambahan
+    // PENGAMANAN SCRIPT: Semua tag penutup JS menggunakan <\/script>
     const finalHtmlOutput = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -191,8 +193,7 @@ function generateAndDownload() {
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- MENYISIPKAN IKLAN 1: Di atas header (Center) -->
-    <center><script src='https://seribudollarperhari.github.io/banner/ad1.js'></script></center>
+    <center><script src="https://seribudollarperhari.github.io/banner/ad1.js"><\/script></center>
     
     <header>
         <div class="container">
@@ -220,8 +221,7 @@ function generateAndDownload() {
                 </div>
             </article>
             
-            <!-- MENYISIPKAN IKLAN 3: Di bawah artikel (Center) -->
-            <center><script src='https://seribudollarperhari.github.io/banner/nativ.js'></script></center>
+            <center><script src="https://seribudollarperhari.github.io/banner/nativ.js"><\/script></center>
             
         </div>
     </main>
