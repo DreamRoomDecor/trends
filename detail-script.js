@@ -1,166 +1,224 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const detailTitle = document.getElementById('detail-title');
-    const detailImageContainer = document.getElementById('detail-image-container');
-    const detailBody = document.getElementById('detail-body');
-    const relatedPostsContainer = document.getElementById('related-posts-container');
     const params = new URLSearchParams(window.location.search);
     const keywordFromQuery = params.get('q') || '';
-    const keyword = keywordFromQuery.replace(/-/g, ' ').trim();
     
-    // Set untuk menyimpan keyword yang sudah tampil agar tidak duplikat di related post
-    const displayedKeywords = new Set();
-    if (keyword) {
-        displayedKeywords.add(keyword.toLowerCase());
-    }
+    // Menghapus angka dan tanda strip di akhir parameter URL
+    // Contoh: "modern-kitchen-377" menjadi "modern-kitchen"
+    const cleanQuery = keywordFromQuery.replace(/-\d+$/, '');
     
-    function capitalizeEachWord(str) { 
-        if (!str) return ''; 
-        return str.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '); 
-    }
-    
-    function generateSeoTitle(baseKeyword) { 
-        const hookWords = ['Printable', 'Aesthetic', 'Minimalist', 'Boho', 'Modern', 'Abstract', 'Vintage', 'DIY', 'Beautiful', 'Digital']; 
-        const suffixWords = ['Wall Art', 'Poster', 'Art Print', 'Digital Download', 'Decor'];
-        const randomHook = hookWords[Math.floor(Math.random() * hookWords.length)]; 
-        const randomSuffix = suffixWords[Math.floor(Math.random() * suffixWords.length)];
-        return `${randomHook} ${capitalizeEachWord(baseKeyword)} ${randomSuffix}`; 
+    if (!cleanQuery) {
+        runAGC('');
+        return;
     }
 
-    function processSpintax(text) {
-        const spintaxPattern = /{([^{}]+)}/g;
-        while (spintaxPattern.test(text)) {
-            text = text.replace(spintaxPattern, (match, choices) => {
-                const options = choices.split('|');
-                return options[Math.floor(Math.random() * options.length)];
-            });
+    // Menentukan nama file yang akan dicari di GitHub
+    const targetHtml = cleanQuery + '.html';
+
+    // Fetch override untuk memuat file statis
+    fetch(targetHtml)
+        .then(response => {
+            if (response.ok) {
+                return response.text();
+            }
+            throw new Error('File not found');
+        })
+        .then(htmlData => {
+            document.open();
+            document.write(htmlData);
+            document.close();
+        })
+        .catch(error => {
+            // Jalankan AGC jika file statis 404
+            const keyword = cleanQuery.replace(/-/g, ' ').trim();
+            runAGC(keyword);
+        });
+
+    // ==========================================
+    // FUNGSI UTAMA AGC (Auto Generated Content)
+    // ==========================================
+    function runAGC(keyword) {
+        const detailTitle = document.getElementById('detail-title');
+        const detailImageContainer = document.getElementById('detail-image-container');
+        const detailBody = document.getElementById('detail-body');
+        const relatedPostsContainer = document.getElementById('related-posts-container');
+        
+        const displayedKeywords = new Set();
+        if (keyword) {
+            displayedKeywords.add(keyword.toLowerCase());
         }
-        return text;
-    }
+        
+        function capitalizeEachWord(str) { 
+            if (!str) return ''; 
+            return str.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '); 
+        }
+        
+        // Hook Home Decor
+        function generateSeoTitle(baseKeyword) { 
+            const hookWords = ['Beautiful', 'Aesthetic', 'Modern', 'Minimalist', 'Cozy', 'Elegant', 'Luxury', 'Creative', 'Stunning', 'Inspiring']; 
+            const suffixWords = ['Home Decor', 'Design Ideas', 'Interior Inspo', 'Room Decor', 'Decorating Tips'];
+            const randomHook = hookWords[Math.floor(Math.random() * hookWords.length)]; 
+            const randomSuffix = suffixWords[Math.floor(Math.random() * suffixWords.length)];
+            return `${randomHook} ${capitalizeEachWord(baseKeyword)} ${randomSuffix}`; 
+        }
 
-    if (!keyword) { 
-        detailTitle.textContent = 'Design Not Found'; 
-        detailBody.innerHTML = '<p>Sorry, the requested art could not be found. Please return to the <a href="index.html">homepage</a>.</p>'; 
-        if (relatedPostsContainer) { 
-            relatedPostsContainer.closest('.related-posts-section').style.display = 'none'; 
-        } 
-        return; 
-    }
+        // Ambil spintax deskripsi.txt
+        function fetchDescriptionTemplate(term, title) {
+            fetch('deskripsi.txt')
+                .then(response => response.text())
+                .then(data => {
+                    const templates = data.split('---').map(t => t.trim()).filter(t => t.length > 0);
+                    if(templates.length > 0) {
+                        const randomTemplate = templates[Math.floor(Math.random() * templates.length)];
+                        let parsedText = processSpintax(randomTemplate);
+                        parsedText = parsedText.replace(/%keyword%/g, `<strong>${capitalizeEachWord(term)}</strong>`);
+                        
+                        // Konversi newline di txt menjadi paragraf HTML
+                        const htmlContent = parsedText.split('\n').map(line => `<p>${line}</p>`).join('');
+                        if(detailBody) detailBody.innerHTML = htmlContent;
+                    } else {
+                        fallbackDescription(term);
+                    }
+                })
+                .catch(() => fallbackDescription(term));
+        }
 
-    function populateMainContent(term) {
-        const newTitle = generateSeoTitle(term);
-        const capitalizedTermForArticle = capitalizeEachWord(term);
-        document.title = `${newTitle} | Home Decor Ideas`;
-        detailTitle.textContent = newTitle;
+        function fallbackDescription(term) {
+            const spintaxArticleTemplate = `{Discover|Explore} the best <strong>${capitalizeEachWord(term)}</strong> {home decor|interior design} ideas to {instantly upgrade|beautifully elevate} your {living space|room}.`;
+            if(detailBody) detailBody.innerHTML = `<p>${processSpintax(spintaxArticleTemplate)}</p>`;
+        }
 
-        const queryImage = term + " wall art poster";
-        const mainImageUrl = `https://tse1.mm.bing.net/th?q=${encodeURIComponent(queryImage)}&w=600&h=900&c=7&rs=1&p=0&dpr=1.5&pid=1.7`;
-        detailImageContainer.innerHTML = `<img src="${mainImageUrl}" alt="${newTitle}">`;
+        function processSpintax(text) {
+            const spintaxPattern = /{([^{}]+)}/g;
+            while (spintaxPattern.test(text)) {
+                text = text.replace(spintaxPattern, (match, choices) => {
+                    const options = choices.split('|');
+                    return options[Math.floor(Math.random() * options.length)];
+                });
+            }
+            return text;
+        }
 
-        const spintaxArticleTemplate = `{Get|Download} this premium <strong>${capitalizedTermForArticle}</strong> printable wall art to {instantly upgrade|beautifully elevate} your room decor.`;
+        if (!keyword) { 
+            if(detailTitle) detailTitle.textContent = 'Decor Idea Not Found'; 
+            if(detailBody) detailBody.innerHTML = '<p>Sorry, the requested decor idea could not be found. Please return to the <a href="index.html">homepage</a>.</p>'; 
+            if (relatedPostsContainer) { 
+                relatedPostsContainer.closest('.related-posts-section').style.display = 'none'; 
+            } 
+            return; 
+        }
 
-        detailBody.innerHTML = processSpintax(spintaxArticleTemplate);
-    }
+        function populateMainContent(term) {
+            const newTitle = generateSeoTitle(term);
+            document.title = `${newTitle} | Home Decor Ideas`;
+            if(detailTitle) detailTitle.textContent = newTitle;
 
-    // Fungsi baru untuk mengambil 5 keyword acak dari keyword.txt
-    function appendRandomKeywords() {
-        fetch('keyword.txt')
-            .then(response => response.text())
-            .then(data => {
-                // Memisahkan teks berdasarkan baris, menghapus spasi kosong, dan memfilter yang sudah tampil
-                const keywords = data.split('\n')
-                    .map(k => k.trim())
-                    .filter(k => k.length > 0 && !displayedKeywords.has(k.toLowerCase()));
-                
-                if (keywords.length === 0) {
-                    checkSectionDisplay();
-                    return;
-                }
-                
-                // Mengacak urutan array keyword (Fisher-Yates Shuffle)
-                for (let i = keywords.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [keywords[i], keywords[j]] = [keywords[j], keywords[i]];
-                }
-                
-                // Mengambil maksimal 5 keyword teratas yang sudah diacak
-                const selectedKeywords = keywords.slice(0, 5);
-                
-                selectedKeywords.forEach(relatedTerm => {
-                    displayedKeywords.add(relatedTerm.toLowerCase());
+            // Gambar utama menggunakan resolusi 800x600 (Landscape)
+            const queryImage = term + " home decor interior";
+            const mainImageUrl = `https://tse1.mm.bing.net/th?q=${encodeURIComponent(queryImage)}&w=800&h=600&c=7&rs=1&p=0&dpr=1.5&pid=1.7`;
+            if(detailImageContainer) detailImageContainer.innerHTML = `<img src="${mainImageUrl}" alt="${newTitle}" style="width:100%; border-radius:8px;">`;
+
+            fetchDescriptionTemplate(term, newTitle);
+        }
+
+        function appendRandomKeywords() {
+            fetch('keyword.txt')
+                .then(response => response.text())
+                .then(data => {
+                    const keywords = data.split('\n')
+                        .map(k => k.trim())
+                        .filter(k => k.length > 0 && !displayedKeywords.has(k.toLowerCase()));
                     
-                    const keywordForUrl = relatedTerm.replace(/\s/g, '-').toLowerCase();
+                    if (keywords.length === 0) {
+                        checkSectionDisplay();
+                        return;
+                    }
+                    
+                    for (let i = keywords.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [keywords[i], keywords[j]] = [keywords[j], keywords[i]];
+                    }
+                    
+                    const selectedKeywords = keywords.slice(0, 5);
+                    
+                    selectedKeywords.forEach(relatedTerm => {
+                        displayedKeywords.add(relatedTerm.toLowerCase());
+                        
+                        const keywordForUrl = relatedTerm.replace(/\s/g, '-').toLowerCase();
+                        const linkUrl = `detail.html?q=${encodeURIComponent(keywordForUrl)}`;
+                        
+                        // Gambar thumbnail related post 400x400
+                        const queryImage = relatedTerm + " home decor";
+                        const imageUrl = `https://tse1.mm.bing.net/th?q=${encodeURIComponent(queryImage)}&w=400&h=400&c=7&rs=1&p=0&dpr=1.5&pid=1.7`;
+                        
+                        const newRelatedTitle = generateSeoTitle(relatedTerm);
+                        const card = `<article class="content-card"><a href="${linkUrl}"><img src="${imageUrl}" alt="${newRelatedTitle}" loading="lazy"><div class="content-card-body"><h3>${newRelatedTitle}</h3></div></a></article>`;
+                        if(relatedPostsContainer) relatedPostsContainer.innerHTML += card;
+                    });
+                    
+                    checkSectionDisplay();
+                })
+                .catch(error => {
+                    console.error('Gagal mengambil keyword.txt:', error);
+                    checkSectionDisplay();
+                });
+        }
+
+        function checkSectionDisplay() {
+            if (relatedPostsContainer && relatedPostsContainer.innerHTML.trim() === '') {
+                relatedPostsContainer.closest('.related-posts-section').style.display = 'none';
+            } else if (relatedPostsContainer) {
+                relatedPostsContainer.closest('.related-posts-section').style.display = 'block';
+            }
+        }
+
+        // Sugesti diambil menggunakan tambahan query "home decor" untuk relevansi
+        function generateRelatedPosts(term) {
+            const script = document.createElement('script');
+            script.src = `https://suggestqueries.google.com/complete/search?client=youtube&jsonp=handleRelatedSuggest&hl=en&q=${encodeURIComponent(term + " home decor")}`;
+            document.head.appendChild(script);
+            script.onload = () => script.remove();
+            script.onerror = () => { 
+                if(relatedPostsContainer) relatedPostsContainer.innerHTML = ''; 
+                script.remove(); 
+                appendRandomKeywords();
+            }
+        }
+
+        window.handleRelatedSuggest = function(data) {
+            const suggestions = data[1];
+            if(relatedPostsContainer) relatedPostsContainer.innerHTML = '';
+            let relatedCount = 0;
+            
+            if (suggestions && suggestions.length > 0) {
+                suggestions.forEach(item => {
+                    const relatedTerm = typeof item === 'string' ? item : item[0];
+                    // Bersihkan keyword agar tidak berulang (opsional)
+                    let cleanTerm = relatedTerm ? relatedTerm.replace(/home decor/gi, '').trim() : '';
+                    if (!cleanTerm) cleanTerm = relatedTerm;
+
+                    const termLower = cleanTerm.toLowerCase();
+                    
+                    if (!termLower || displayedKeywords.has(termLower) || relatedCount >= 5) return;
+                    
+                    displayedKeywords.add(termLower);
+                    relatedCount++;
+                    
+                    const keywordForUrl = cleanTerm.replace(/\s/g, '-').toLowerCase();
                     const linkUrl = `detail.html?q=${encodeURIComponent(keywordForUrl)}`;
                     
-                    const queryImage = relatedTerm + " wall art poster";
-                    const imageUrl = `https://tse1.mm.bing.net/th?q=${encodeURIComponent(queryImage)}&w=400&h=600&c=7&rs=1&p=0&dpr=1.5&pid=1.7`;
+                    const queryImage = cleanTerm + " home decor";
+                    const imageUrl = `https://tse1.mm.bing.net/th?q=${encodeURIComponent(queryImage)}&w=400&h=400&c=7&rs=1&p=0&dpr=1.5&pid=1.7`;
                     
-                    const newRelatedTitle = generateSeoTitle(relatedTerm);
+                    const newRelatedTitle = generateSeoTitle(cleanTerm);
                     const card = `<article class="content-card"><a href="${linkUrl}"><img src="${imageUrl}" alt="${newRelatedTitle}" loading="lazy"><div class="content-card-body"><h3>${newRelatedTitle}</h3></div></a></article>`;
-                    relatedPostsContainer.innerHTML += card;
+                    if(relatedPostsContainer) relatedPostsContainer.innerHTML += card;
                 });
-                
-                checkSectionDisplay();
-            })
-            .catch(error => {
-                console.error('Gagal mengambil keyword.txt:', error);
-                checkSectionDisplay();
-            });
-    }
-
-    // Fungsi untuk memastikan section related posts disembunyikan jika kosong
-    function checkSectionDisplay() {
-        if (relatedPostsContainer.innerHTML.trim() === '') {
-            relatedPostsContainer.closest('.related-posts-section').style.display = 'none';
-        } else {
-            relatedPostsContainer.closest('.related-posts-section').style.display = 'block';
-        }
-    }
-
-    function generateRelatedPosts(term) {
-        const script = document.createElement('script');
-        script.src = `https://suggestqueries.google.com/complete/search?client=youtube&jsonp=handleRelatedSuggest&hl=en&q=${encodeURIComponent(term)}`;
-        document.head.appendChild(script);
-        script.onload = () => script.remove();
-        script.onerror = () => { 
-            relatedPostsContainer.innerHTML = ''; 
-            script.remove(); 
-            // Tetap coba muat dari keyword.txt jika API Google gagal
+            }
+            
             appendRandomKeywords();
-        }
+        };
+
+        populateMainContent(keyword);
+        generateRelatedPosts(keyword);
     }
-
-    window.handleRelatedSuggest = function(data) {
-        const suggestions = data[1];
-        relatedPostsContainer.innerHTML = '';
-        let relatedCount = 0;
-        
-        if (suggestions && suggestions.length > 0) {
-            suggestions.forEach(item => {
-                const relatedTerm = typeof item === 'string' ? item : item[0];
-                const termLower = relatedTerm ? relatedTerm.toLowerCase() : '';
-                
-                // BATAS 1: Tampilkan hanya 5, dan hindari duplikat
-                if (!termLower || displayedKeywords.has(termLower) || relatedCount >= 5) return;
-                
-                displayedKeywords.add(termLower);
-                relatedCount++;
-                
-                const keywordForUrl = relatedTerm.replace(/\s/g, '-').toLowerCase();
-                const linkUrl = `detail.html?q=${encodeURIComponent(keywordForUrl)}`;
-                
-                const queryImage = relatedTerm + " wall art poster";
-                const imageUrl = `https://tse1.mm.bing.net/th?q=${encodeURIComponent(queryImage)}&w=400&h=600&c=7&rs=1&p=0&dpr=1.5&pid=1.7`;
-                
-                const newRelatedTitle = generateSeoTitle(relatedTerm);
-                const card = `<article class="content-card"><a href="${linkUrl}"><img src="${imageUrl}" alt="${newRelatedTitle}" loading="lazy"><div class="content-card-body"><h3>${newRelatedTitle}</h3></div></a></article>`;
-                relatedPostsContainer.innerHTML += card;
-            });
-        }
-        
-        // BATAS 2: Setelah menampilkan maksimal 5 dari Google Suggest, muat lagi 5 random dari keyword.txt
-        appendRandomKeywords();
-    };
-
-    populateMainContent(keyword);
-    generateRelatedPosts(keyword);
 });
