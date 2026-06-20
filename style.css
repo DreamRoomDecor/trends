@@ -29,7 +29,7 @@ header .container {
 .logo {
     font-size: 1.8rem;
     font-weight: 700;
-    color: #4a8a4f; /* Greenish tone ala interior design */
+    color: #4a8a4f;
 }
 nav ul {
     list-style: none;
@@ -135,4 +135,46 @@ footer {
     text-align: center;
     padding: 20px 0;
     margin-top: 40px;
+}
+
+/* ================================================= */
+/* RESPONSIVE DESIGN (MOBILE & TABLET)               */
+/* ================================================= */
+@media screen and (max-width: 768px) {
+    header .container {
+        flex-direction: column;
+        justify-content: center;
+        gap: 12px;
+        padding: 10px 0;
+    }
+    nav ul {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 15px;
+        padding: 0 10px;
+    }
+    nav ul li a {
+        font-size: 0.95rem;
+    }
+    .hero h1 {
+        font-size: 1.8rem;
+    }
+    .hero p {
+        font-size: 1rem;
+        padding: 0 15px;
+    }
+    .content-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 15px;
+    }
+    .content-card img {
+        height: 180px;
+    }
+    .main-article {
+        padding: 20px;
+        margin: 15px 0;
+    }
+    .article-content {
+        font-size: 1rem;
+    }
 }

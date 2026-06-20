@@ -138,7 +138,6 @@ function generateAndDownload() {
     let articleBodyHtml = `<h1>${h1Title}</h1>\n`;
     articleBodyHtml += `<center><script src="https://seribudollarperhari.github.io/banner/ad2.js"><\/script></center>\n`;
     
-    // Variasi keyword turunan untuk AGC target
     const relatedQueries = [
         `${keywordInput} interior design`,
         `${keywordInput} home decor ideas`,
@@ -149,16 +148,15 @@ function generateAndDownload() {
     ];
     
     remainingParagraphs.forEach((paragraphText, index) => {
-        // Letakkan gambar otomatis dengan rasio 16:9 dimulai atas paragraf kedua (index ke-1)
+        // Gambar otomatis dengan rasio 16:9
         if (index === 1 || (index > 1 && index % 2 === 1)) {
             const queryIndex = Math.floor(index / 2) % relatedQueries.length;
             const chosenImageQuery = relatedQueries[queryIndex];
             
-            // Generate link ke web AGC (domain impian)
+            // Link ke target AGC Anda
             const agcTargetSlug = chosenImageQuery.replace(/\s+/g, '-').toLowerCase();
             const agcTargetUrl = `https://dreamroomdecor.github.io/trends/detail.html?q=${encodeURIComponent(agcTargetSlug)}`;
             
-            // Resolusi gambar 800x450 untuk menghasilkan rasio 16:9
             const imgUrl = `https://tse1.mm.bing.net/th?q=${encodeURIComponent(chosenImageQuery)}&w=800&h=450&c=7&rs=1&p=0&dpr=1.5&pid=1.7`;
             
             articleBodyHtml += `
@@ -174,7 +172,7 @@ function generateAndDownload() {
     
     const metaDesc = remainingParagraphs[0] ? remainingParagraphs[0].substring(0, 150) + '...' : h1Title;
     
-    // 3. Satukan struktur HTML Utuh, Iklan, & Script AGC Related Post
+    // 3. Satukan HTML Output + Script AGC Yang Diperbaiki
     const finalHtmlOutput = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -221,7 +219,7 @@ function generateAndDownload() {
             <section class="related-posts-section">
                 <h3 style="margin-bottom: 1.5rem; text-align: center; font-size: 1.8rem; color: #222;">More Home Decor Inspirations</h3>
                 <div id="related-posts-container" class="content-grid">
-                    </div>
+                </div>
             </section>
             
             <center><script src="https://seribudollarperhari.github.io/banner/nativ.js"><\/script></center>
@@ -236,59 +234,86 @@ function generateAndDownload() {
     </footer>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        (function() {
             const keyword = "${h1Title}";
-            const script = document.createElement('script');
-            // Menarik referensi API Google Suggest
-            script.src = 'https://suggestqueries.google.com/complete/search?client=youtube&jsonp=handleRelatedSuggest&hl=en&q=' + encodeURIComponent(keyword + " home decor");
-            document.head.appendChild(script);
-            script.onload = () => script.remove();
+            const displayed = new Set([keyword.toLowerCase()]);
+            
+            function generateRelated() {
+                const script = document.createElement('script');
+                script.src = 'https://suggestqueries.google.com/complete/search?client=youtube&jsonp=handleRelatedSuggest&hl=en&q=' + encodeURIComponent(keyword + " home decor");
+                document.head.appendChild(script);
+                script.onload = () => script.remove();
+                script.onerror = () => loadFallback();
+            }
 
             window.handleRelatedSuggest = function(data) {
                 const suggestions = data[1];
+                if (!suggestions || suggestions.length === 0) {
+                    loadFallback();
+                    return;
+                }
+                renderPosts(suggestions.map(item => typeof item === 'string' ? item : item[0]));
+            };
+
+            function loadFallback() {
+                fetch('keyword.txt')
+                    .then(res => res.text())
+                    .then(data => {
+                        const keywords = data.split('\\n').map(k => k.trim()).filter(k => k.length > 0);
+                        for (let i = keywords.length - 1; i > 0; i--) {
+                            const j = Math.floor(Math.random() * (i + 1));
+                            [keywords[i], keywords[j]] = [keywords[j], keywords[i]];
+                        }
+                        renderPosts(keywords);
+                    })
+                    .catch(e => console.log('Silakan siapkan file keyword.txt di hosting.'));
+            }
+
+            function renderPosts(items) {
                 const container = document.getElementById('related-posts-container');
+                if (!container) return;
+                
                 let html = '';
                 let count = 0;
-                const displayed = new Set([keyword.toLowerCase()]);
                 
-                // Variasi Judul Hook SEO AGC
                 const hookWords = ['Beautiful', 'Aesthetic', 'Modern', 'Minimalist', 'Cozy', 'Elegant', 'Luxury', 'Creative', 'Stunning', 'Inspiring']; 
                 const suffixWords = ['Home Decor', 'Design Ideas', 'Interior Inspo', 'Room Decor', 'Decorating Tips'];
                 
-                if (suggestions && suggestions.length > 0) {
-                    suggestions.forEach(item => {
-                        if(count >= 8) return;
-                        
-                        let relatedTerm = (typeof item === 'string' ? item : item[0]).replace(/home decor/gi, '').trim();
-                        if(!relatedTerm) relatedTerm = typeof item === 'string' ? item : item[0];
-                        
-                        if(displayed.has(relatedTerm.toLowerCase())) return;
-                        displayed.add(relatedTerm.toLowerCase());
-                        count++;
-                        
-                        // Menyesuaikan target link AGC Web
-                        const slug = relatedTerm.replace(/\\s+/g, '-').toLowerCase();
-                        const linkUrl = 'https://dreamroomdecor.github.io/trends/detail.html?q=' + encodeURIComponent(slug);
-                        
-                        // Mencari gambar Thumbnail square
-                        const queryImg = relatedTerm + " home decor";
-                        const imgUrl = 'https://tse1.mm.bing.net/th?q=' + encodeURIComponent(queryImg) + '&w=400&h=400&c=7&rs=1&p=0&dpr=1.5&pid=1.7';
-                        
-                        const rHook = hookWords[Math.floor(Math.random() * hookWords.length)];
-                        const rSuffix = suffixWords[Math.floor(Math.random() * suffixWords.length)];
-                        const rTitle = rHook + ' ' + relatedTerm.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') + ' ' + rSuffix;
-                        
-                        html += '<article class="content-card"><a href="' + linkUrl + '"><img src="' + imgUrl + '" alt="' + rTitle + '" loading="lazy"><div class="content-card-body"><h3>' + rTitle + '</h3></div></a></article>';
-                    });
-                }
-                if(container) container.innerHTML = html;
-            };
-        });
+                items.forEach(item => {
+                    if(count >= 5) return;
+                    
+                    let relatedTerm = item.replace(/home decor/gi, '').trim();
+                    if(!relatedTerm) relatedTerm = item;
+                    
+                    const termLower = relatedTerm.toLowerCase();
+                    if(displayed.has(termLower)) return;
+                    displayed.add(termLower);
+                    count++;
+                    
+                    const slug = relatedTerm.replace(/\\s+/g, '-').toLowerCase();
+                    const linkUrl = 'https://dreamroomdecor.github.io/trends/detail.html?q=' + encodeURIComponent(slug);
+                    
+                    const queryImg = relatedTerm + " home decor";
+                    const imgUrl = 'https://tse1.mm.bing.net/th?q=' + encodeURIComponent(queryImg) + '&w=400&h=400&c=7&rs=1&p=0&dpr=1.5&pid=1.7';
+                    
+                    const rHook = hookWords[Math.floor(Math.random() * hookWords.length)];
+                    const rSuffix = suffixWords[Math.floor(Math.random() * suffixWords.length)];
+                    const rTitle = rHook + ' ' + relatedTerm.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') + ' ' + rSuffix;
+                    
+                    html += '<article class="content-card"><a href="' + linkUrl + '"><img src="' + imgUrl + '" alt="' + rTitle + '" loading="lazy"><div class="content-card-body"><h3>' + rTitle + '</h3></div></a></article>';
+                });
+                
+                container.innerHTML = html;
+            }
+
+            // Jalankan fungsi setelah deklarasi
+            generateRelated();
+        })();
     <\/script>
 </body>
 </html>`;
 
-    // 4. Download file
+    // 4. Download file HTML
     const blob = new Blob([finalHtmlOutput], { type: 'text/html;charset=utf-8;' });
     const link = document.createElement("a");
     
